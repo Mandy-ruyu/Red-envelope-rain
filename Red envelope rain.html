@@ -1,0 +1,15 @@
+<button id="rainBtn">下紅包雨！</button>
+
+<script>
+  const btn = document.getElementById('rainBtn');
+  
+  btn.onclick = () => {
+    // 呼叫你的後端網址
+    fetch('https://你的伺服器網址.com/trigger-rain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => console.log('已送出指令'))
+    .catch(err => console.error('發生錯誤', err));
+  };
+</script>
