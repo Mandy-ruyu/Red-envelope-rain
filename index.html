@@ -1,154 +1,95 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>紅包雨遙控器</title>
-    <style>
-        /* 星空背景樣式 */
-        body {
-            margin: 0;
-            padding: 0;
-            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            font-family: 'PingFang TC', sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <title>Snow Emoji Effect</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(#0b1d3a, #1e3c72);
+      overflow: hidden;
+      cursor: default;
+    }
 
-        /* 按鈕樣式 */
-        #rainBtn {
-            padding: 20px 50px;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            border: none;
-            border-radius: 50px;
-            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.4);
-            cursor: pointer;
-            z-index: 10;
-            transition: transform 0.1s;
-            outline: none;
-        }
+    .snow {
+      position: fixed;
+      top: -2em;
+      font-size: 20px;
+      user-select: none;
+      pointer-events: none;
+      animation: fall linear forwards;
+    }
 
-        #rainBtn:active {
-            transform: scale(0.9);
-        }
+    @keyframes fall {
+      to {
+        transform: translateY(110vh);
+        opacity: 0;
+      }
+    }
 
-        /* 噴出的 Emoji 樣式 */
-        .emoji {
-            position: absolute;
-            pointer-events: none;
-            animation: blowUp 1s ease-out forwards;
-            font-size: 2rem;
-            z-index: 5;
-        }
+    .hover-snow {
+      position: fixed;
+      pointer-events: none;
+      user-select: none;
+      animation: float 1.2s ease-out forwards;
+    }
 
-        @keyframes blowUp {
-            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-            100% { transform: translate(var(--x), var(--y)) rotate(360deg); opacity: 0; }
-        }
-
-        /* CSS 星空小動畫 */
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.5;
-            animation: twinkle var(--duration) infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-    </style>
+    @keyframes float {
+      from {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      to {
+        transform: translate(
+          calc(-50px + 100px * var(--dx)),
+          -80px
+        ) scale(0.6);
+        opacity: 0;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div id="stars"></div>
+<script>
+  // 🌨️ 持續下雪
+  const snowEmojis = ["❄️", "☃️", "❅"];
 
-    <button id="rainBtn">按我下紅包雨！</button>
+  function createSnow() {
+    const snow = document.createElement("div");
+    snow.className = "snow";
+    snow.textContent = snowEmojis[Math.floor(Math.random() * snowEmojis.length)];
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    snow.style.left = Math.random() * window.innerWidth + "px";
+    snow.style.animationDuration = 5 + Math.random() * 5 + "s";
+    snow.style.fontSize = 14 + Math.random() * 18 + "px";
 
-        // ⚠️ 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBtQHEw3Kmxh824E5EG1kP-YpG6ul406gs",
-            authDomain: "red-envelope-rain.firebaseapp.com",
-            databaseURL: "https://red-envelope-rain-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "red-envelope-rain",
-            storageBucket: "red-envelope-rain.firebasestorage.app",
-            messagingSenderId: "532612777563",
-            appId: "1:532612777563:web:d11f6ab78dce4169c3617e"
-        };
+    document.body.appendChild(snow);
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const countRef = ref(db, 'redPacketCount');
+    setTimeout(() => snow.remove(), 10000);
+  }
 
-        const btn = document.getElementById('rainBtn');
+  setInterval(createSnow, 200);
 
-        // 點擊事件
-        btn.onclick = (e) => {
-            // 1. Firebase 數據加 1 (連動 Unity)
-            runTransaction(countRef, (count) => (count || 0) + 1);
+  // ❄️ 滑鼠移動產生飄動雪花
+  document.addEventListener("mousemove", (e) => {
+    const snow = document.createElement("div");
+    snow.className = "hover-snow";
+    snow.textContent = "❄️";
 
-            runTransaction(countRef, (count) => {
-                let newCount = (count || 0) + 1;
-                if (newCount > 50) {
-                    return 0; // 超過 50 次自動重設為 0
-                }
-                return newCount;
-            });
+    snow.style.left = e.clientX + "px";
+    snow.style.top = e.clientY + "px";
+    snow.style.fontSize = "18px";
+    snow.style.setProperty("--dx", Math.random());
 
-            // 2. 噴發花朵特效
-            createFlowers(e.clientX, e.clientY);
-        };
+    document.body.appendChild(snow);
 
-        // 噴花特效函式
-        function createFlowers(x, y) {
-            const flowers = ['🌸', '🌼', '🌻', '🌹', '🌷'];
-            for (let i = 0; i < 8; i++) {
-                const span = document.createElement('span');
-                span.className = 'emoji';
-                span.innerText = flowers[Math.floor(Math.random() * flowers.length)];
-                
-                // 隨機噴發方向
-                const moveX = (Math.random() - 0.5) * 300;
-                const moveY = (Math.random() - 0.5) * 300;
-                
-                span.style.left = x + 'px';
-                span.style.top = y + 'px';
-                span.style.setProperty('--x', moveX + 'px');
-                span.style.setProperty('--y', moveY + 'px');
-                
-                document.body.appendChild(span);
-                setTimeout(() => span.remove(), 1000);
-            }
-        }
+    setTimeout(() => snow.remove(), 1200);
+  });
+</script>
 
-        // 產生背景星星
-        function initStars() {
-            for (let i = 0; i < 50; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                const size = Math.random() * 3 + 'px';
-                star.style.width = size;
-                star.style.height = size;
-                star.style.left = Math.random() * 100 + 'vw';
-                star.style.top = Math.random() * 100 + 'vh';
-                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
-                document.getElementById('stars').appendChild(star);
-            }
-        }
-        initStars();
-    </script>
 </body>
 </html>
-
